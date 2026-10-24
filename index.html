@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tác Hại Khi Sống Chung Với Rác Thải</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Cấu hình Tailwind trực tiếp để đồng bộ bảng màu -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'yale-blue': '#0f3b59',
+                        'cool-steel': '#7d929e',
+                        'dust-grey': '#dbd4cc',
+                        'goldenrod': '#dba12c',
+                        'dark-coffee': '#3e251e',
+                    },
+                    fontFamily: {
+                        sans: ['"Google Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #dbd4cc; /* Dust Grey */
+            color: #3e251e; /* Dark Coffee */
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Hiệu ứng nhiễu hạt (Noise overlay) cho phong cách báo chí bụi bặm */
+        .noise-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.4;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            mix-blend-mode: multiply;
+        }
+
+        /* --- CÁC HIỆU ỨNG RIÊNG --- */
+        .stat-card {
+            position: relative;
+        }
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 6px;
+        }
+
+        /* --- PHẦN SCROLLYTELLING --- */
+        #scrolly-wrapper {
+            height: 400vh;
+            position: relative;
+        }
+        .scrolly-sticky {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        @media (min-width: 768px) {
+            .scrolly-sticky { flex-direction: row; }
+        }
+
+        .pie-section {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            position: relative; padding: 2rem;
+        }
+        .pie-wrapper { width: 250px; height: 250px; position: relative; z-index: 10; }
+        @media (min-width: 1024px) {
+            .pie-wrapper { width: 400px; height: 400px; }
+        }
+
+        .slice {
+            transition: opacity 0.5s ease, stroke-width 0.3s;
+            opacity: 0.2; stroke: #dbd4cc; stroke-width: 1;
+        }
+        .slice.active {
+            opacity: 1; stroke-width: 4; stroke: #dbd4cc;
+        }
+
+        /* Mũi tên chỉ thị */
+        .connector-line {
+            position: absolute; z-index: 5; transition: all 0.5s ease;
+        }
+        @media (min-width: 768px) {
+            .connector-line {
+                top: 50%; right: -2px; transform: translateY(-50%);
+                width: 80px; height: 2px; background-color: #3e251e;
+            }
+            .connector-line::before {
+                content: ''; position: absolute; left: -6px; top: -4px;
+                width: 10px; height: 10px; border-radius: 50%; background-color: #3e251e;
+            }
+            .connector-line::after {
+                content: ''; position: absolute; right: -2px; top: -5px;
+                width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 10px solid #3e251e;
+            }
+        }
+        @media (max-width: 767px) {
+            .connector-line {
+                bottom: -2px; left: 50%; transform: translateX(-50%);
+                height: 40px; width: 2px; background-color: #3e251e;
+            }
+            .connector-line::before {
+                content: ''; position: absolute; top: -6px; left: -4px;
+                width: 10px; height: 10px; border-radius: 50%; background-color: #3e251e;
+            }
+            .connector-line::after {
+                content: ''; position: absolute; bottom: -2px; left: -5px;
+                width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 10px solid #3e251e;
+            }
+        }
+
+        /* Thẻ nội dung */
+        .content-section {
+            flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 2rem;
+        }
+        .data-card {
+            position: absolute; width: 90%; max-width: 500px;
+            opacity: 0; transform: translateY(30px) scale(0.98);
+            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); visibility: hidden;
+        }
+        .data-card.active {
+            opacity: 1; transform: translateY(0) scale(1); visibility: visible;
+        }
+
+        .img-container img {
+            width: 100%; height: 100%; object-fit: cover;
+            filter: grayscale(100%) contrast(120%);
+        }
+        .color-tint {
+            position: absolute; inset: 0; mix-blend-mode: screen; opacity: 0.7;
+        }
+
+        /* Timeline Dot */
+        .timeline-dot {
+            width: 20px; height: 20px; border-radius: 50%;
+            background-color: #dba12c; border: 4px solid #dbd4cc;
+            position: absolute; left: -9px; top: 0; z-index: 10;
+        }
+        @media (min-width: 768px) {
+            .timeline-dot { left: 50%; transform: translateX(-50%); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Lớp nhiễu hạt -->
+    <div class="noise-overlay"></div>
+
+    <!-- ================= HERO SECTION ================= -->
+    <header class="relative px-6 py-24 max-w-6xl mx-auto min-h-screen flex flex-col justify-center">
+        <div class="mb-4 inline-block border-b-8 border-yale-blue pb-2 self-start">
+            <h1 class="text-5xl md:text-7xl font-black uppercase leading-[1.05] tracking-tight text-dark-coffee">
+                Tác hại khi<br>sống chung<br>với rác thải
+            </h1>
+        </div>
+        <!-- Hướng dẫn cuộn -->
+        <div class="mt-24 flex flex-col items-center justify-center gap-2 text-dark-coffee font-bold uppercase tracking-widest text-xs opacity-70 animate-bounce">
+            <span>Cuộn để khám phá</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+        </div>
+    </header>
+
+
+    <!-- ================= SCROLLYTELLING SECTION ================= -->
+    <main id="scrolly-wrapper">
+        <div class="scrolly-sticky">
+            <!-- CỘT TRÁI: BIỂU ĐỒ PIE -->
+            <!-- Thứ tự màu: Goldenrod, Cool Steel, Yale Blue, Dark Coffee -->
+            <div class="pie-section md:border-r-2 border-b-2 md:border-b-0 border-dark-coffee/10">
+                <div class="pie-wrapper">
+                    <div class="connector-line" id="connector"></div>
+                    
+                    <svg class="w-full h-full drop-shadow-xl" viewBox="0 0 100 100" id="pieSvg">
+                        <!-- Group xoay, tâm quay 50,50 -->
+                        <g id="pieGroup" style="transform-origin: 50px 50px; transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);">
+                            
+                            <!-- 0: Goldenrod (Múi bên phải ban đầu, góc 0 đến 90 độ) -->
+                            <path id="slice-0" class="slice active" fill="#dba12c" 
+                                  d="M 50 50 L 81.8 18.2 A 45 45 0 0 1 81.8 81.8 Z" />
+                                  
+                            <!-- 1: Cool Steel (Múi bên dưới, góc 90 đến 180 độ) -->
+                            <path id="slice-1" class="slice" fill="#7d929e" 
+                                  d="M 50 50 L 81.8 81.8 A 45 45 0 0 1 18.2 81.8 Z" />
+                                  
+                            <!-- 2: Yale Blue (Múi bên trái, góc 180 đến 270 độ) -->
+                            <path id="slice-2" class="slice" fill="#0f3b59" 
+                                  d="M 50 50 L 18.2 81.8 A 45 45 0 0 1 18.2 18.2 Z" />
+                                  
+                            <!-- 3: Dark Coffee (Múi bên trên, góc 270 đến 360 độ) -->
+                            <path id="slice-3" class="slice" fill="#3e251e" 
+                                  d="M 50 50 L 18.2 18.2 A 45 45 0 0 1 81.8 18.2 Z" />
+
+                            <!-- Trục giữa -->
+                            <circle cx="50" cy="50" r="6" fill="#dbd4cc" stroke="#3e251e" stroke-width="2"/>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- CỘT PHẢI: NỘI DUNG THAY ĐỔI -->
+            <div class="content-section">
+                
+                <!-- Card 0: Goldenrod -->
+                <div class="data-card active" id="card-0">
+                    <h2 class="text-6xl md:text-7xl font-black mb-2 relative inline-block tracking-tighter text-goldenrod">
+                       <span class="text-4xl"> Tích Tụ Vi Nhựa </span>
+                        <div class="absolute bottom-2 left-0 w-full h-3 opacity-40 bg-goldenrod -z-10"></div>
+                    </h2>
+                    <p class="text-lg font-medium text-dark-coffee/80 mb-6 leading-relaxed">
+                        Nuốt phải 0,1 – 5g vi nhựa/tuần do uống nước bẩn hoặc tiêu thụ hải sản sống trong môi trường ô nhiễm.
+                        Điều này kích hoạt phản ứng viêm, gây stress oxy hóa và làm rối loạn quá trình chuyển hóa năng lượng.
+                    </p>
+                    <div class="w-full h-56 relative overflow-hidden border-2 border-dark-coffee">
+                        <img src="IMG_1844.jpg" alt="Đổ rác">
+                        <div class="color-tint bg-goldenrod"></div>
+                    </div>
+                </div>
+
+                <!-- Card 1: Cool Steel -->
+                <div class="data-card" id="card-1">
+                    <h2 class="text-6xl md:text-7xl font-black mb-2 relative inline-block tracking-tighter text-cool-steel">
+                    <span class="text-5xl"> Bùng Phát Dịch Bệnh Truyền Nhiễm </span>
+                        <div class="absolute bottom-2 left-0 w-full h-3 opacity-40 bg-cool-steel -z-10"></div>
+                    </h2>
+                    <p class="text-lg font-medium text-dark-coffee/80 mb-6 leading-relaxed">
+                    Làm hàng triệu người tử vong mỗi năm trên toàn cầu do sử dụng nguồn nước lẫn chất thải sinh hoạt, phân và vi sinh vật gây bệnh (vi khuẩn, virus).
+                    Lây lan các bệnh nguy hiểm như tiêu chảy cấp, tả, kiết lỵ, thương hàn, viêm gan A và bại liệt.
+                    </p>
+                    <div class="w-full h-56 relative overflow-hidden border-2 border-dark-coffee">
+<video width="500" height="300" controls>
+  <source src="IMG_7411.MP4" type="video/mp4">
+</video>                        
+<div class="color-tint bg-cool-steel"></div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Yale Blue -->
+                <div class="data-card" id="card-2">
+                    <h2 class="text-6xl md:text-7xl font-black mb-2 relative inline-block tracking-tighter text-yale-blue">
+                        <span class="text-4xl">Tổn Thương Đa Cơ Quan</span>
+                        <div class="absolute bottom-2 left-0 w-full h-3 opacity-40 bg-yale-blue -z-10"></div>
+                    </h2>
+                    <p class="text-lg font-medium text-dark-coffee/80 mb-6 leading-relaxed">
+                    Cơ thể hấp thụ các chất độc hóa học (thuốc trừ sâu, phân bón, kim loại nặng) qua đường uống.
+                    Gây ung thư, rối loạn nội tiết và biến đổi chức năng brain.
+                     Phá hủy hệ miễn dịch, suy giảm chức năng sinh sản, gây biến chứng nặng cho tim mạch và thận.
+                    </p>
+                    <div class="w-full h-56 relative overflow-hidden border-2 border-dark-coffee">
+                        <img src="IMG_1848.jpg" alt="Sức khỏe">
+                        <div class="color-tint bg-yale-blue"></div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Dark Coffee -->
+                <div class="data-card" id="card-3">
+                    <h2 class="text-6xl md:text-7xl font-black mb-2 relative inline-block tracking-tighter text-dark-coffee">
+                        <span class="text-4xl">  Bệnh Lý Ngoài Da & Hô Hấp </span>
+                        <div class="absolute bottom-2 left-0 w-full h-3 opacity-40 bg-dark-coffee -z-10"></div>
+                    </h2>
+                    <p class="text-lg font-medium text-dark-coffee/80 mb-6 leading-relaxed">
+                    Bơi lội, tắm rửa hoặc tiếp xúc trực tiếp da/niêm mạc/vết thương hở với nước ô nhiễm.
+                    Gây phát ban, viêm kết mạc mắt, nhiễm trùng đường hô hấp và nguy cơ mắc bệnh viêm gan do virus.
+                    </p>
+                    <div class="w-full h-56 relative overflow-hidden border-2 border-dark-coffee">
+                        <img src="IMG_1860.jpg">
+                        <div class="absolute inset-0 bg-dark-coffee opacity-50 mix-blend-overlay"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+
+    <!-- ================= TIMELINE SECTION ================= -->
+    <section class="py-24 px-6 relative max-w-4xl mx-auto border-t-4 border-dark-coffee mt-12">
+        <h2 class="text-4xl md:text-5xl font-black text-center text-dark-coffee uppercase mb-16 tracking-tight">
+            Vết sẹo của thời gian
+        </h2>
+        
+        <div class="relative">
+            <!-- Trục dọc -->
+            <div class="absolute left-[11px] md:left-1/2 top-0 w-[4px] bg-dark-coffee/20 h-full transform md:-translate-x-1/2"></div>
+            
+            <!-- Sự kiện 1 -->
+            <div class="relative flex flex-col md:flex-row items-start mb-12 md:justify-between w-full">
+                <div class="timeline-dot"></div>
+                <div class="ml-10 md:ml-0 md:w-[45%] text-left md:text-right md:pr-10">
+                    <h3 class="text-3xl font-black text-yale-blue">1990 - 2000</h3>
+                </div>
+                <div class="ml-10 md:ml-0 md:w-[45%] md:pl-10 mt-2 md:mt-0 text-dark-coffee/80 font-medium">
+Tốc độ đô thị hóa nhanh khiến dòng chảy phụ bị bồi lấp tạo thành vùng nước tù. Khu vực này biến thành bãi tập kết rác thải lộ thiên khổng lồ của chợ Long Biên và các quận trung tâm.                </div>
+            </div>
+
+            <!-- Sự kiện 2 -->
+            <div class="relative flex flex-col md:flex-row items-start mb-12 md:justify-between w-full">
+                <div class="timeline-dot" style="background-color: #7d929e;"></div>
+                <div class="ml-10 md:ml-0 md:w-[45%] text-left md:order-2 md:pl-10">
+                    <h3 class="text-3xl font-black text-cool-steel"> 2006 - 2015 </h3>
+                </div>
+                <div class="ml-10 md:ml-0 md:w-[45%] md:order-1 text-left md:text-right md:pr-10 mt-2 md:mt-0 text-dark-coffee/80 font-medium">
+Nơi đây được gọi là "mặt sau" nhếch nhác của thủ đô với nạn đổ trộm phế thải xây dựng, kim tiêm, rác thải ngập ngụa.                 </div>
+            </div>
+
+            <!-- Sự kiện 3 -->
+            <div class="relative flex flex-col md:flex-row items-start md:justify-between w-full">
+                <div class="timeline-dot" style="background-color: #3e251e;"></div>
+                <div class="ml-10 md:ml-0 md:w-[45%] text-left md:text-right md:pr-10">
+                    <h3 class="text-3xl font-black text-dark-coffee">2021 - 2022</h3>
+                </div>
+                <div class="ml-10 md:ml-0 md:w-[45%] md:pl-10 mt-2 md:mt-0 text-dark-coffee/80 font-medium">
+Hơn 200 tấn rác thải tại khu vực ngách 43/32 Bạch Đằng (Chương Dương) được chính quyền, người dân và mạng lưới Vì một Hà Nội đáng sống dọn sạch.                </div>
+            </div>
+    <!-- Sự kiện 4 -->
+            <div class="relative flex flex-col md:flex-row items-start md:justify-between w-full">
+                <div class="timeline-dot" style="background-color: #3e251e;"></div>
+                <div class="ml-10 md:ml-0 md:w-[45%] text-left md:text-right md:pr-10">
+                    <h3 class="text-3xl font-black text-dark-coffee">2023</h3>
+                </div>
+                <div class="ml-10 md:ml-0 md:w-[45%] md:pl-10 mt-2 md:mt-0 text-dark-coffee/80 font-medium">
+Hoàn thành dự án cải tạo thành khu vườn rừng cộng đồng với hàng trăm cây xanh.            
+</div>
+        </div>
+    </section>
+
+    <!-- ================= IMAGE GALLERY ================= -->
+    <section class="max-w-7xl mx-auto px-6 py-20">
+        <h2 class="text-3xl md:text-4xl font-black text-dark-coffee uppercase mb-8 border-b-4 border-yale-blue inline-block pb-2">
+            Góc nhìn chân thực
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[250px]">
+            <!-- Ảnh 1: Trải dài 2 cột trên MD -->
+            <div class="relative border-2 border-dark-coffee overflow-hidden group md:col-span-2">
+                <video src="IMG_7411.MP4" alt="Chất thải" class="w-full h-full object-cover grayscale contrast-125 transition duration-700 group-hover:scale-105 group-hover:grayscale-0"> </video>
+                <div class="absolute bottom-0 left-0 w-full bg-dark-coffee/90 text-dust-grey p-4 transform translate-y-full group-hover:translate-y-0 transition duration-300">
+                    <p class="font-bold text-sm">Núi rác phế thải công nghiệp chất cao ven bờ.</p>
+                </div>
+            </div>
+
+            <!-- Ảnh 2 -->
+            <div class="relative border-2 border-dark-coffee overflow-hidden group">
+                <img src="IMG_1844.jpg" alt="Rác nhựa" class="w-full h-full object-cover grayscale contrast-125 transition duration-700 group-hover:scale-105 group-hover:grayscale-0">
+                <div class="absolute inset-0 bg-goldenrod/30 mix-blend-multiply group-hover:opacity-0 transition duration-300"></div>
+                <div class="absolute bottom-0 left-0 w-full bg-dark-coffee/90 text-dust-grey p-4 transform translate-y-full group-hover:translate-y-0 transition duration-300">
+                    <p class="font-bold text-sm">Rác thải nhựa ngập ngụa bãi bồi.</p>
+                </div>
+            </div>
+
+            <!-- Ảnh 3 -->
+            <div class="relative border-2 border-dark-coffee overflow-hidden group">
+                <img src="IMG_1845.jpg" alt="Nước đen" class="w-full h-full object-cover grayscale contrast-125 transition duration-700 group-hover:scale-105 group-hover:grayscale-0">
+                <div class="absolute inset-0 bg-cool-steel/40 mix-blend-multiply group-hover:opacity-0 transition duration-300"></div>
+            </div>
+
+            <!-- Ảnh 4: Trải dài 2 cột trên MD -->
+            <div class="relative border-2 border-dark-coffee overflow-hidden group md:col-span-2">
+                <img src="IMG_1860.jpg" alt="Người dân" class="w-full h-full object-cover grayscale contrast-125 transition duration-700 group-hover:scale-105 group-hover:grayscale-0">
+                <div class="absolute bottom-0 left-0 w-full bg-dark-coffee/90 text-dust-grey p-4 transform translate-y-full group-hover:translate-y-0 transition duration-300">
+                    <p class="font-bold text-sm">Mưu sinh vất vả giữa vòng vây ô nhiễm.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- SCRIPT ĐIỀU KHIỂN SCROLLYTELLING -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const scrollyWrapper = document.getElementById('scrolly-wrapper');
+            const pieGroup = document.getElementById('pieGroup');
+            const slices = document.querySelectorAll('.slice');
+            const cards = document.querySelectorAll('.data-card');
+            
+            const totalStates = 4;
+            let currentIndex = -1; 
+
+            function updateState(newIndex) {
+                if (newIndex === currentIndex) return;
+                currentIndex = newIndex;
+                
+                // Xoay biểu đồ Pie (-90 độ mỗi mốc để múi tiếp theo hiện sang phải)
+                const rotationAngle = currentIndex * -90;
+                pieGroup.style.transform = `rotate(${rotationAngle}deg)`;
+
+                // Cập nhật múi (slice) đang active
+                slices.forEach((slice, idx) => {
+                    slice.classList.toggle('active', idx === currentIndex);
+                });
+
+                // Cập nhật nội dung thẻ (card) đang active
+                cards.forEach((card, idx) => {
+                    card.classList.toggle('active', idx === currentIndex);
+                });
+            }
+
+            function handleScroll() {
+                const rect = scrollyWrapper.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                
+                // Khoảng cách thực tế có thể cuộn bên trong wrapper
+                const scrollableDistance = scrollyWrapper.offsetHeight - viewportHeight;
+                const scrolledAmount = -rect.top;
+
+                if (scrolledAmount >= 0 && scrolledAmount <= scrollableDistance) {
+                    let progress = scrolledAmount / scrollableDistance;
+                    let index = Math.floor(progress * totalStates);
+                    if (index >= totalStates) index = totalStates - 1;
+                    
+                    updateState(index);
+                } 
+                else if (scrolledAmount < 0) {
+                    updateState(0);
+                } 
+                else if (scrolledAmount > scrollableDistance) {
+                    updateState(totalStates - 1);
+                }
+            }
+
+            window.addEventListener('scroll', handleScroll, { passive: true });
+            
+            // Khởi tạo ở vị trí cuộn hiện tại
+            handleScroll();
+        });
+    </script>
+</body>
+</html>
